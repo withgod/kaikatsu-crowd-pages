@@ -43,7 +43,13 @@
     }).formatToParts(new Date()).forEach(function (p) { parts[p.type] = p.value; });
     var jsIndex = EN_WEEKDAYS.indexOf(parts.weekday);
     var pyWeekday = jsIndex === 0 ? 6 : jsIndex - 1; // Mon=0..Sun=6, matching the generator
-    return { pyWeekday: pyWeekday, hour: parseInt(parts.hour, 10), minute: parseInt(parts.minute, 10) };
+    var hour = parseInt(parts.hour, 10);
+    // The heatmap's rows/columns read as one continuous 07:00->06:00
+    // session (see aggregator.slot_sort_key), so "today" for tab-selection
+    // purposes doesn't roll over at midnight either - before 07:00, "now"
+    // still belongs to the previous day's row.
+    if (hour < 7) pyWeekday = (pyWeekday + 6) % 7;
+    return { pyWeekday: pyWeekday, hour: hour, minute: parseInt(parts.minute, 10) };
   }
 
   function slotToMinutes(slot) {
